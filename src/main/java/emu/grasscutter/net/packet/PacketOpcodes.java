@@ -164,7 +164,7 @@ public class PacketOpcodes {
     public static final int GetAllUnlockNameCardReq = 5009;
     public static final int GetAllUnlockNameCardRsp = 2632;
     public static final int SetPlayerBirthdayReq = 26726;
-    public static final int SetPlayerBirthdayRsp = 9150; 
+    public static final int SetPlayerBirthdayRsp = 9150;
     public static final int GalleryWillStartCountdownNotify = 2443;
     public static final int GetWidgetSlotRsp = 5441;
     public static final int AvatarExpeditionDataNotify = 22907;
@@ -5139,8 +5139,9 @@ public class PacketOpcodes {
     public static final int WorldOwnerDailyTaskNotify = 1;
 
     // Unknown
-    public static final HashSet<Integer> BANNED_PACKETS = new HashSet<>() {
-        {
-        }
-    };
+    public static final HashSet<Integer> BANNED_PACKETS =
+            new HashSet<>() {
+                {
+                }
+            };
 }
