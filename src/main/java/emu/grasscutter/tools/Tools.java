@@ -6,8 +6,12 @@ import static emu.grasscutter.utils.lang.Language.getTextMapKey;
 import emu.grasscutter.*;
 import emu.grasscutter.command.*;
 import emu.grasscutter.data.*;
+import emu.grasscutter.data.common.ItemUseData;
 import emu.grasscutter.data.excels.*;
+import emu.grasscutter.data.excels.achievement.AchievementData;
 import emu.grasscutter.data.excels.avatar.AvatarData;
+
+import emu.grasscutter.game.props.FightProperty;
 import emu.grasscutter.server.http.handlers.GachaHandler;
 import emu.grasscutter.utils.*;
 import emu.grasscutter.utils.lang.Language;
@@ -42,7 +46,7 @@ public final class Tools {
     public static void createGmHandbooks(boolean message) throws Exception {
         // Check if the GM Handbook directory exists.
         val handbookDir = new File("GM Handbook");
-        // if (handbookDir.exists()) return;
+        //if (handbookDir.exists()) return;
 
         val languages = Language.TextStrings.getLanguages();
 
@@ -110,44 +114,54 @@ public final class Tools {
 
         val mainPropData = new Int2ObjectRBTreeMap<>(GameData.getReliquaryMainPropDataMap());
 
+        
+
         // MainProp
 
         h.newSection("MainProp");
 
-        mainPropData.forEach((id, data) -> h.newLine(id + " : " + data.getFightProp().toString()));
+        mainPropData.forEach((id, data) ->
+
+            h.newLine(id + " : " + data.getFightProp().toString()));
 
         val propData = new Int2ObjectRBTreeMap<>(GameData.getReliquaryAffixDataMap());
+
+                 
 
         // PropData
 
         h.newSection("PropData");
 
-        propData.forEach(
-                (id, data) -> {
-                    String valueStr =
-                            FightProperty.isPercentage(data.getFightProp())
-                                    ? String.format("%.1f%%", data.getPropValue() * 100f)
-                                    : String.format("%.0f", data.getPropValue());
+        propData.forEach((id, data) -> {
 
-                    h.newLine(
-                            id
-                                    + " : "
-                                    + FightProperty.getPropById(data.getGroupId()).toString()
-                                    + " + "
-                                    + valueStr);
-                });
+            String valueStr = FightProperty.isPercentage(data.getFightProp()) ?
 
+                String.format("%.1f%%", data.getPropValue() * 100f)
+
+                : String.format("%.0f", data.getPropValue());
+
+            h.newLine(id + " : " + FightProperty.getPropById(
+
+                    data.getGroupId()
+
+                ).toString() + " + " + valueStr
+
+            );
+
+        });
+        
         // Write txt files
         // for (int i = 0; i < TextStrings.NUM_LANGUAGES; i++) {
-        File GMHandbookOutputpath = new File("./GM Handbook");
-        GMHandbookOutputpath.mkdir();
-        final String fileName = "./GM Handbook/GM Handbook Global Prop.txt";
-        try (PrintWriter writer =
-                new PrintWriter(
-                        new OutputStreamWriter(new FileOutputStream(fileName), StandardCharsets.UTF_8),
-                        false)) {
-            writer.write(handbookBuilders.get(0).toString());
-        }
+            File GMHandbookOutputpath = new File("./GM Handbook");
+            GMHandbookOutputpath.mkdir();
+            final String fileName =
+                    "./GM Handbook/GM Handbook Global Prop.txt";
+            try (PrintWriter writer =
+                    new PrintWriter(
+                            new OutputStreamWriter(new FileOutputStream(fileName), StandardCharsets.UTF_8),
+                            false)) {
+                writer.write(handbookBuilders.get(0).toString());
+            }
         if (message) Grasscutter.getLogger().info("GM Handbooks generated!");
     }
 
