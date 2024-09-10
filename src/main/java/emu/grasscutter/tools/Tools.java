@@ -44,7 +44,7 @@ public final class Tools {
     public static void createGmHandbooks(boolean message) throws Exception {
         // Check if the GM Handbook directory exists.
         val handbookDir = new File("GM Handbook");
-        if (handbookDir.exists()) return;
+        //if (handbookDir.exists()) return;
 
         val languages = Language.TextStrings.getLanguages();
 
@@ -110,106 +110,56 @@ public final class Tools {
                 "// Created "
                         + DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss").format(LocalDateTime.now()));
 
-        // Commands
-        h.newSection("Commands");
-        final List<CommandHandler> cmdList = CommandMap.getInstance().getHandlersAsList();
-        final String padCmdLabel =
-                "%"
-                        + cmdList.stream()
-                                .map(CommandHandler::getLabel)
-                                .map(String::length)
-                                .max(Integer::compare)
-                                .get()
-                        + "s : ";
-        for (CommandHandler cmd : cmdList) {
-            final String label = padCmdLabel.formatted(cmd.getLabel());
-            final String descKey = cmd.getDescriptionKey();
-            for (int i = 0; i < TextStrings.NUM_LANGUAGES; i++) {
-                String desc =
-                        languages.get(i).get(descKey).replace("\n", "\n\t\t\t\t").replace("\t", "    ");
-                handbookBuilders.get(i).append(label + desc + "\n");
-            }
-        }
-        // Avatars
-        h.newSection("Avatars");
-        val avatarPre = getPad.apply(avatarDataMap);
-        avatarDataMap.forEach(
-                (id, data) ->
-                        h.newTranslatedLine(avatarPre.formatted(id) + "{0}", data.getNameTextMapHash()));
-        // Items
-        h.newSection("Items");
-        val itemPre = getPad.apply(itemDataMap);
-        itemDataMap.forEach(
-                (id, data) -> {
-                    val name = getTextMapKey(data.getNameTextMapHash());
-                    switch (data.getMaterialType()) {
-                        case MATERIAL_BGM:
-                            val bgmName =
-                                    Optional.ofNullable(data.getItemUse())
-                                            .map(u -> u.get(0))
-                                            .map(ItemUseData::getUseParam)
-                                            .filter(u -> u.length > 0)
-                                            .map(u -> Integer.parseInt(u[0]))
-                                            .map(bgmId -> GameData.getHomeWorldBgmDataMap().get((int) bgmId))
-                                            .map(HomeWorldBgmData::getBgmNameTextMapHash)
-                                            .map(Language::getTextMapKey);
-                            if (bgmName.isPresent()) {
-                                h.newTranslatedLine(itemPre.formatted(id) + "{0} - {1}", name, bgmName.get());
-                                return;
-                            } // Fall-through
-                        default:
-                            h.newTranslatedLine(itemPre.formatted(id) + "{0}", name);
-                            return;
-                    }
-                });
-        // Monsters
-        h.newSection("Monsters");
-        val monsterPre = getPad.apply(monsterDataMap);
-        monsterDataMap.forEach(
-                (id, data) ->
-                        h.newTranslatedLine(
-                                monsterPre.formatted(id) + data.getMonsterName() + " - {0}",
-                                data.getNameTextMapHash()));
-        // Scenes - no translations
-        h.newSection("Scenes");
-        val padSceneId = getPad.apply(sceneDataMap);
-        sceneDataMap.forEach((id, data) -> h.newLine(padSceneId.formatted(id) + data.getScriptData()));
-        // Quests
-        h.newSection("Quests");
-        val padQuestId = getPad.apply(questDataMap);
-        questDataMap.forEach(
-                (id, data) ->
-                        h.newTranslatedLine(
-                                padQuestId.formatted(id) + "{0} - {1}",
-                                mainQuestTitles.get(data.getMainId()),
-                                data.getDescTextMapHash()));
-        // Achievements
-        h.newSection("Achievements");
-        val padAchievementId = getPad.apply(achievementDataMap);
-        achievementDataMap.values().stream()
-                .filter(AchievementData::isUsed)
-                .forEach(
-                        data -> {
-                            h.newTranslatedLine(
-                                    padAchievementId.formatted(data.getId()) + "{0} - {1}",
-                                    data.getTitleTextMapHash(),
-                                    data.getDescTextMapHash());
-                        });
+        val mainPropData = new Int2ObjectRBTreeMap<>(GameData.getReliquaryMainPropDataMap());
 
+        
+
+        // MainProp
+
+        h.newSection("MainProp");
+
+        mainPropData.forEach((id, data) ->
+
+            h.newLine(id + " : " + data.getFightProp().toString()));
+
+        val propData = new Int2ObjectRBTreeMap<>(GameData.getReliquaryAffixDataMap());
+
+                 
+
+        // PropData
+
+        h.newSection("PropData");
+
+        propData.forEach((id, data) -> {
+
+            String valueStr = FightProperty.isPercentage(data.getFightProp()) ?
+
+                String.format("%.1f%%", data.getPropValue() * 100f)
+
+                : String.format("%.0f", data.getPropValue());
+
+            h.newLine(id + " : " + FightProperty.getPropById(
+
+                    data.getGroupId()
+
+                ).toString() + " + " + valueStr
+
+            );
+
+        });
+        
         // Write txt files
-        for (int i = 0; i < TextStrings.NUM_LANGUAGES; i++) {
+        // for (int i = 0; i < TextStrings.NUM_LANGUAGES; i++) {
             File GMHandbookOutputpath = new File("./GM Handbook");
             GMHandbookOutputpath.mkdir();
             final String fileName =
-                    "./GM Handbook/GM Handbook - %s.txt".formatted(TextStrings.ARR_LANGUAGES[i]);
+                    "./GM Handbook/GM Handbook Global Prop.txt";
             try (PrintWriter writer =
                     new PrintWriter(
                             new OutputStreamWriter(new FileOutputStream(fileName), StandardCharsets.UTF_8),
                             false)) {
-                writer.write(handbookBuilders.get(i).toString());
+                writer.write(handbookBuilders.get(0).toString());
             }
-        }
-
         if (message) Grasscutter.getLogger().info("GM Handbooks generated!");
     }
 
